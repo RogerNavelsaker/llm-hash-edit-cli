@@ -32,3 +32,36 @@ Make sure the `llm-hash-edit` skill is loaded in your environment, then run:
 ```
 
 Compare the hit rate (%) between the two runs to measure the reduction in hallucinated or malformed edits!
+
+## 3. Results (Hyperfine Benchmarks)
+
+These benchmarks were run on a synthetic 20,000-line Rust file (`large_test.rs`) within the default `flox` environment. They compare the native Rust `llm-hash-edit-cli` against a simulated MCP execution (running via `bun` to approximate a fast Node/JS environment without full JSON-RPC IPC overhead).
+
+### Read Benchmark (Hashing 20,000 lines)
+```text
+Benchmark 1: target/release/llm-hash-edit-cli read large_test.rs > /dev/null
+  Time (mean ± σ):       4.9 ms ±   1.0 ms    [User: 3.0 ms, System: 1.8 ms]
+  Range (min … max):     3.2 ms …   9.1 ms    381 runs
+
+Benchmark 2: bun bun_hash.ts large_test.rs > /dev/null
+  Time (mean ± σ):      19.7 ms ±   1.6 ms    [User: 14.3 ms, System: 7.6 ms]
+  Range (min … max):    17.1 ms …  34.9 ms    153 runs
+
+Summary
+  target/release/llm-hash-edit-cli read large_test.rs > /dev/null ran
+    4.03 ± 0.92 times faster than bun bun_hash.ts large_test.rs > /dev/null
+```
+**Takeaway:** The native Rust implementation calculates cryptographic hashes for 20,000 lines natively in roughly **4.9 milliseconds**—significantly faster than even the raw script execution time of Bun.
+
+### Apply Benchmark (JSON verification and disk write)
+Applying a multi-line JSON replacement directly into the middle of the 20,000-line file natively:
+
+```text
+Benchmark 1: cat edit.json | target/release/llm-hash-edit-cli apply large_test.rs > /dev/null
+  Time (mean ± σ):       4.2 ms ±   0.7 ms    [User: 1.7 ms, System: 2.1 ms]
+  Range (min … max):     2.8 ms …   7.1 ms    361 runs
+```
+**Takeaway:** A full end-to-end cycle (parsing JSON, reading the 20,000 line file, verifying the cryptographic hashes of the target lines, applying the edits, and overwriting the file) completed in **4.2 milliseconds**, entirely bypassing the overhead of standard MCP JSON-RPC protocol layers.
+
+---
+*Note: To run the LLM Agent A/B hit rate tests or the Chaos Monkey benchmark, you must supply an external dataset of test cases and ensure the relevant agent CLI is authenticated and in your PATH.*
