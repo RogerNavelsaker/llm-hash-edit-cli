@@ -75,6 +75,7 @@ for test_dir in "$DATASET"/*; do
       echo "  -> FAILED (Fell victim to Chaos Monkey)"
     fi
     ((TOTAL++))
+    sleep 10
   fi
 done
 

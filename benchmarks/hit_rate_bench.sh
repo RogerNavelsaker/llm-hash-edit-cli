@@ -64,6 +64,7 @@ for test_dir in "$DATASET"/*; do
       echo "  -> FAILED"
     fi
     ((TOTAL++))
+    sleep 10
   fi
 done
 
