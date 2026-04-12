@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 # run_hit_rate_bench.sh
-# Requires an external dataset directory with tests (e.g. rust projects with a prompt.txt and a failing test).
-# Usage: ./hit_rate_bench.sh --agent "gemini --yolo" --dataset ./dataset [--use-skill]
 
 AGENT="gemini --yolo"
 DATASET="./dataset"
@@ -18,12 +16,15 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [ ! -d "$DATASET" ]; then
-    echo "Dataset directory $DATASET not found! Please create a dataset with test cases to run."
+    echo "Dataset directory $DATASET not found!"
     exit 1
 fi
 
 SUCCESS=0
 TOTAL=0
+TOTAL_MS=0
+TOTAL_TOKENS=0
+TOTAL_TURNS=0
 
 echo "Starting Hit Rate Benchmark with agent: $AGENT"
 echo "Skill Enabled: $USE_SKILL"
@@ -41,10 +42,22 @@ for test_dir in "$DATASET"/*; do
     fi
     
     echo "Running test $(basename "$test_dir")..."
-    # Pipe prompt or pass as arg depending on agent
-    $AGENT "$PROMPT" > /dev/null 2>&1
+    # Run with -o json to get telemetry
+    $AGENT -p "$PROMPT" -o json > session.json 2>&1
     
-    if cargo test --quiet > /dev/null 2>&1; then
+    # Parse telemetry using jq
+    if [ -f session.json ]; then
+        # Gemini CLI wraps the result in a JSON object in headless mode
+        MS=$(jq -r '.duration_ms // 0' session.json)
+        TOKENS=$(jq -r '.usage.total_token_count // 0' session.json)
+        TURNS=$(jq -r '.turns | length // 0' session.json)
+        
+        TOTAL_MS=$((TOTAL_MS + MS))
+        TOTAL_TOKENS=$((TOTAL_TOKENS + TOKENS))
+        TOTAL_TURNS=$((TOTAL_TURNS + TURNS))
+    fi
+    
+    if cargo test --quiet > /dev/null 2>&1 || npm test --silent > /dev/null 2>&1 || pytest -q > /dev/null 2>&1; then
       echo "  -> SUCCESS"
       ((SUCCESS++))
     else
@@ -55,7 +68,13 @@ for test_dir in "$DATASET"/*; do
 done
 
 if [ $TOTAL -gt 0 ]; then
+    echo "------------------------------------------------"
+    echo "Final Results:"
     echo "Hit Rate: $SUCCESS / $TOTAL ($((SUCCESS * 100 / TOTAL))%)"
+    echo "Avg Time: $((TOTAL_MS / TOTAL / 1000))s ($((TOTAL_MS / TOTAL))ms)"
+    echo "Avg Tokens: $((TOTAL_TOKENS / TOTAL))"
+    echo "Avg Turns: $((TOTAL_TURNS / TOTAL))"
+    echo "------------------------------------------------"
 else
     echo "No tests found in dataset."
 fi

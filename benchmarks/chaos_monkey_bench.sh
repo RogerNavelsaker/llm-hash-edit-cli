@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 # chaos_monkey_bench.sh
-# Tests LLM agent resilience against "lost updates" and concurrent modifications.
-# It injects a line-shifting mutation into the target file while the agent is running.
 
 AGENT="gemini --yolo"
 DATASET="./dataset"
@@ -24,6 +22,9 @@ fi
 
 SUCCESS=0
 TOTAL=0
+TOTAL_MS=0
+TOTAL_TOKENS=0
+TOTAL_TURNS=0
 
 echo "🐵 Starting Chaos Monkey Benchmark with agent: $AGENT"
 echo "Skill Enabled: $USE_SKILL"
@@ -42,16 +43,11 @@ for test_dir in "$DATASET"/*; do
     
     echo "Running test $(basename "$test_dir") with concurrent mutations..."
     
-    # Launch the agent in the background
-    $AGENT "$PROMPT" > agent_output.log 2>&1 &
+    # Launch the agent in the background with -o json
+    $AGENT -p "$PROMPT" -o json > session.json 2>&1 &
     AGENT_PID=$!
     
-    # THE CHAOS MONKEY
-    # We wait a few seconds (to allow the agent to perform its initial file read),
-    # then we inject a line at the top of the target file.
-    # This shifts all line numbers down by 1.
-    # Standard tools will overwrite the WRONG line.
-    # llm-hash-edit will throw a hash mismatch error, forcing the LLM to re-read and recover.
+    # Chaos Monkey: Wait for initial read then mutate
     sleep 4
     TARGET_FILE=$(find . -name "*.rs" -o -name "*.ts" -o -name "*.py" -o -name "*.js" | head -n 1)
     if [ -n "$TARGET_FILE" ] && ps -p $AGENT_PID > /dev/null; then
@@ -59,10 +55,19 @@ for test_dir in "$DATASET"/*; do
         sed -i '1i // CHAOS MONKEY CONCURRENT MUTATION: SHIFTING ALL LINES BY 1' "$TARGET_FILE"
     fi
     
-    # Wait for the LLM agent to finish its turn loop
     wait $AGENT_PID
     
-    # Verify if the edit was successfully applied to the correct logical location
+    # Parse telemetry
+    if [ -f session.json ]; then
+        MS=$(jq -r '.duration_ms // 0' session.json)
+        TOKENS=$(jq -r '.usage.total_token_count // 0' session.json)
+        TURNS=$(jq -r '.turns | length // 0' session.json)
+        
+        TOTAL_MS=$((TOTAL_MS + MS))
+        TOTAL_TOKENS=$((TOTAL_TOKENS + TOKENS))
+        TOTAL_TURNS=$((TOTAL_TURNS + TURNS))
+    fi
+    
     if cargo test --quiet > /dev/null 2>&1 || npm test --silent > /dev/null 2>&1 || pytest -q > /dev/null 2>&1; then
       echo "  -> SUCCESS (Recovered from Chaos Monkey!)"
       ((SUCCESS++))
@@ -74,7 +79,13 @@ for test_dir in "$DATASET"/*; do
 done
 
 if [ $TOTAL -gt 0 ]; then
-    echo "Chaos Monkey Hit Rate: $SUCCESS / $TOTAL ($((SUCCESS * 100 / TOTAL))%)"
+    echo "------------------------------------------------"
+    echo "Chaos Monkey Results:"
+    echo "Hit Rate: $SUCCESS / $TOTAL ($((SUCCESS * 100 / TOTAL))%)"
+    echo "Avg Time: $((TOTAL_MS / TOTAL / 1000))s ($((TOTAL_MS / TOTAL))ms)"
+    echo "Avg Tokens: $((TOTAL_TOKENS / TOTAL))"
+    echo "Avg Turns: $((TOTAL_TURNS / TOTAL))"
+    echo "------------------------------------------------"
 else
     echo "No tests found in dataset."
 fi
