@@ -42,7 +42,7 @@ for test_dir in "$DATASET"/*; do
     
     echo "Running test $(basename "$test_dir")..."
     # Pipe prompt or pass as arg depending on agent
-    $AGENT -p "$PROMPT" > /dev/null 2>&1
+    $AGENT "$PROMPT" > /dev/null 2>&1
     
     if cargo test --quiet > /dev/null 2>&1; then
       echo "  -> SUCCESS"
