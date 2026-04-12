@@ -43,7 +43,7 @@ for test_dir in "$DATASET"/*; do
     echo "Running test $(basename "$test_dir") with concurrent mutations..."
     
     # Launch the agent in the background
-    echo -e "$PROMPT" | $AGENT > agent_output.log 2>&1 &
+    $AGENT -p "$PROMPT" > agent_output.log 2>&1 &
     AGENT_PID=$!
     
     # THE CHAOS MONKEY
