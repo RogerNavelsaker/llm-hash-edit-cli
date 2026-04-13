@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source "$(dirname "$0")/lib_log.sh"
+source "$(dirname "$0")/../bash-boilerplate/lib/log.sh"
 : "${LOG_LEVEL:=1}"
 
 AGENT="gemini --yolo -m gemini-3.1-flash-lite-preview -p"

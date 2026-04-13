@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Source the boilerplate components
-source "$(dirname "$0")/lib_log.sh"
+source "$(dirname "$0")/../bash-boilerplate/lib/log.sh"
 
 # Default configuration
 AGENT="gemini --yolo -m gemini-3.1-flash-lite-preview -p"
