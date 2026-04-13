@@ -7,12 +7,12 @@ RESULTS_FILE="suite_results.log"
 
 run_bench() {
     local script="$1"; local extra="$2"
-    ./"$script" --agent "$AGENT" --dataset "$DATASET" $extra >> "$RESULTS_FILE" 2>&1
+    ./"$script" --agent "$AGENT" --dataset "$DATASET" $extra >out "$RESULTS_FILE" 2>&1
 }
 
 main() {
     info "Benchmark suite initialized."
-    echo "=== Benchmark Suite Started: $(date) ===" > "$RESULTS_FILE"
+    out "$RESULTS_FILE" "=== Benchmark Suite Started: $(date) ===" out "$RESULTS_FILE"
     
     run_bench "hit_rate_bench.sh" ""
     run_bench "hit_rate_bench.sh" "--use-skill"
