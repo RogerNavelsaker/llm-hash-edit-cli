@@ -1,3 +1,5 @@
+VERBOSE_FLAG=""
+if [[ "$TRACE" == "1" ]]; then VERBOSE_FLAG="--verbose"; fi
 #!/usr/bin/env bash
 source "$(dirname "$0")/lib_log.sh"
 
@@ -6,6 +8,9 @@ DATASET="./dataset"
 USE_SKILL=false
 
 while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        --verbose) export TRACE=1; set -o xtrace ;; 
+    esac
     case "$1" in
         --agent) AGENT="$2"; shift ;;
         --dataset) DATASET="$2"; shift ;;

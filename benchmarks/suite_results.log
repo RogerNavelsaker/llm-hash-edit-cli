@@ -1,4 +1,4 @@
-=== Start: 2026-04-13T10:28:40 CEST ===
+=== Start: 2026-04-13T10:30:19 CEST ===
 
 --- GEMINI CONTROL ---
-./hit_rate_bench.sh: line 4: VERBOSE: unbound variable
+[2026-04-13T10:30:19+0200] [0;32m[INFO][0m Running test: test_1

@@ -1,32 +1,26 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/lib_log.sh"
 
+# If user provided -v, set TRACE for subshells
+if [[ "${1:-}" == "-v" ]] || [[ "${1:-}" == "--verbose" ]]; then
+    export TRACE=1
+    set -o xtrace
+fi
+
 AGENT="gemini --yolo -m gemini-3.1-flash-lite-preview -p"
 DATASET="/home/rona/.gemini/tmp/fleet/dataset"
 RESULTS_FILE="suite_results.log"
 
-usage() {
-    echo "Usage: ${0##*/} [options]"
-    echo "  -v, --verbose  Enable trace output"
-}
-
-while [[ "$#" -gt 0 ]]; do
-    case "$1" in
-        -v|--verbose) export TRACE=1; set -o xtrace ;;
-        *) break ;;
-    esac
-    shift
-done
-
 info "Starting suite..."
-echo "=== Start: $(date) ===" > "$RESULTS_FILE"
 
 run_bench() {
     local name="$1"; local script="$2"; local extra="$3"
     info "Starting: $name"
-    echo -e "\n--- $name ---" >> "$RESULTS_FILE"
-    ./"$script" --agent "$AGENT" --dataset "$DATASET" $extra >> "$RESULTS_FILE" 2>&1
-    notice "Finished: $name"
+    # Pass TRACE if it's set
+    local trace_arg=""
+    [[ "${TRACE-0}" == "1" ]] && trace_arg="-v"
+    
+    ./"$script" --agent "$AGENT" --dataset "$DATASET" $extra $trace_arg
 }
 
 run_bench "GEMINI CONTROL" "hit_rate_bench.sh" ""
