@@ -1,3 +1,4 @@
+source "$(dirname "$0")/lib_log.sh"
 #!/usr/bin/env bash
 
 if [ "$VERBOSE" = "1" ]; then set -x; fi
