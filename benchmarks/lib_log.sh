@@ -11,11 +11,9 @@ notice() { log "${BLUE}[NOTICE]${NC} $1"; }
 warning() { log "${YELLOW}[WARN]${NC} $1"; }
 error() { log "${RED}[ERROR]${NC} $1"; exit 1; }
 
-# New telemetry printer
 print_telemetry() {
     local ms=$1; local tokens=$2; local turns=$3; local success=$4
     local status="${RED}FAILED${NC}"
     [[ "$success" == "1" ]] && status="${GREEN}SUCCESS${NC}"
-    
-    echo -e "  [TELEMETRY] Status: $status | Time: $((ms/1000))s | Tokens: $tokens | Turns: $turns" >&2
+    log "  [TELEMETRY] Status: $status | Time: $((ms/1000))s | Tokens: $tokens | Turns: $turns"
 }
