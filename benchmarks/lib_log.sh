@@ -6,7 +6,7 @@ readonly RED='\033[0;31m'; readonly GREEN='\033[0;32m'; readonly YELLOW='\033[0;
 
 log() { echo -e "[$(date +'%Y-%m-%dT%H:%M:%S%z')] $1" >&2; }
 info() { log "${GREEN}[INFO]${NC} $1"; }
-debug() { [[ "${TRACE-0}" == "1" ]] && log "${BLUE}[DEBUG]${NC} $1"; }
+debug() { log "${BLUE}[DEBUG]${NC} $1"; }
 notice() { log "${BLUE}[NOTICE]${NC} $1"; }
 warning() { log "${YELLOW}[WARN]${NC} $1"; }
 error() { log "${RED}[ERROR]${NC} $1"; exit 1; }
