@@ -34,7 +34,7 @@ struct LineOutput {
 enum Edit {
     #[serde(rename = "r")]
     Replace { l: usize, h: String, c: String },
-    #[serde(rename = "rm")]
+    #[serde(rename = "mr")]
     ReplaceMulti {
         s: usize,
         e: usize,
@@ -74,7 +74,7 @@ const JSON_SCHEMA: &str = r#"{
       },
       {
         "properties": {
-          "op": { "const": "rm" },
+          "op": { "const": "mr" },
           "s": { "type": "integer", "description": "Start line number (1-based)" },
           "e": { "type": "integer", "description": "End line number (inclusive)" },
           "h": { "type": "array", "items": { "type": "string" }, "description": "Array of hashes for each line in range" },
@@ -105,17 +105,17 @@ const JSON_SCHEMA: &str = r#"{
 }"#;
 
 const SKILL_MARKDOWN: &str = r#"---
-name: llm-hash-edit
+name: le
 description: A high-performance, compact hashmap line editor for safe and deterministic file modifications.
 ---
 
-# llm-hash-edit Protocol
+# Linehash Edit (le) Protocol
 
-You are equipped with `llm-hash-edit`, a native, zero-latency CLI for line-editing. This tool prevents hallucinations and "lost updates" by requiring cryptographic hashes of the lines you intend to edit.
+You are equipped with `le`, a native, zero-latency CLI for line-editing. This tool prevents hallucinations and "lost updates" by requiring cryptographic hashes of the lines you intend to edit.
 
 ## Reading Files
 To view a file, run:
-`llm-hash-edit read <filepath>`
+`le read <filepath>`
 
 The output is a JSON array of objects representing lines:
 `[{"l": 1, "h": "2f", "c": "fn main() {"}, ...]`
@@ -124,13 +124,13 @@ The output is a JSON array of objects representing lines:
 - `c`: The line's content.
 
 ## Editing Files
-To apply edits, pipe a compact JSON array of edit operations into `llm-hash-edit apply <filepath>`.
+To apply edits, pipe a compact JSON array of edit operations into `le apply <filepath>`.
 
 Supported operations (`op`):
 1. **Single-line Replace** (`r`):
    `[{"op": "r", "l": 1, "h": "2f", "c": "fn main(args) {"}]`
-2. **Multi-line Replace** (`rm`):
-   `[{"op": "rm", "s": 2, "e": 3, "h": ["a1", "b2"], "c": ["let a = 1;", "let b = 2;"]}]`
+2. **Multi-line Replace** (`mr`):
+   `[{"op": "mr", "s": 2, "e": 3, "h": ["a1", "b2"], "c": ["let a = 1;", "let b = 2;"]}]`
 3. **Insert After** (`i`):
    `[{"op": "i", "l": 10, "h": "d4", "c": ["new line 1", "new line 2"]}]`
    *(To insert at the beginning of the file, use `l: 0` and `h: "00"`)*
@@ -139,10 +139,10 @@ Supported operations (`op`):
 
 ### Critical Rules:
 1. You MUST provide the exact hash (`h`) for the line(s) being targeted. If the file has changed and the hash doesn't match, the entire batch of edits will be rejected.
-2. For multi-line (`rm`) and delete (`d`) operations, the length of the hash array `h` MUST match the number of lines from `s` to `e` inclusive.
+2. For multi-line (`mr`) and delete (`d`) operations, the length of the hash array `h` MUST match the number of lines from `s` to `e` inclusive.
 3. Edits are processed atomically. Do not send malformed JSON.
 4. Output your edits cleanly to `stdin`. For example:
-   `echo '[{"op":"r","l":5,"h":"1a","c":"let x = 42;"}]' | llm-hash-edit apply src/main.rs`
+   `echo '[{"op":"r","l":5,"h":"1a","c":"let x = 42;"}]' | le apply src/main.rs`
 "#;
 
 fn compute_hash(line: &str) -> String {

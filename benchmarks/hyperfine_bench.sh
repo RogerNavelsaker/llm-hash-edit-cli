@@ -33,14 +33,14 @@ BUNEOF
 
     info "Running Hyperfine Read Benchmark..."
     ~/.cargo/bin/hyperfine --warmup 3 \
-      "target/release/llm-hash-edit-cli read large_test.rs > /dev/null" \
+      "target/release/le read large_test.rs > /dev/null" \
       "bun bun_hash.ts large_test.rs > /dev/null"
 
     info "Preparing Apply Benchmark payload..."
     cat << 'JSONEOF' > edit.json
 [
   { "op": "r", "l": 499, "h": "dd", "c": "    println!(\"248 - EDITED\");" },
-  { "op": "rm", "s": 502, "e": 503, "h": ["2f", "35"], "c": ["    let var_250 = 250000;", "    println!(\"250000\");"] }
+  { "op": "mr", "s": 502, "e": 503, "h": ["2f", "35"], "c": ["    let var_250 = 250000;", "    println!(\"250000\");"] }
 ]
 JSONEOF
 
@@ -48,7 +48,7 @@ JSONEOF
     info "Running Hyperfine Apply Benchmark..."
     ~/.cargo/bin/hyperfine --warmup 3 \
       --prepare "cp large_test.rs.bak large_test.rs" \
-      "cat edit.json | target/release/llm-hash-edit-cli apply large_test.rs > /dev/null"
+      "cat edit.json | target/release/le apply large_test.rs > /dev/null"
 
     info "Cleaning up..."
     rm generate_test.py bun_hash.ts large_test.rs large_test.rs.bak edit.json
