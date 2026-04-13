@@ -1,0 +1,9 @@
+Starting Hit Rate Benchmark with agent: gemini --yolo
+Skill Enabled: false
+Running test test_1...
+  -> SUCCESS
+Running test test_2...
+  -> SUCCESS
+Running test test_3...
+  -> SUCCESS
+Hit Rate: 3 / 3 (100%)

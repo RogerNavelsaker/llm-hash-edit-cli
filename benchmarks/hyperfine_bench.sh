@@ -39,7 +39,7 @@ main();
 BUNEOF
 
 echo "Running Hyperfine Read Benchmark..."
-hyperfine --warmup 3 \
+~/.cargo/bin/hyperfine --warmup 3 \
   "target/release/llm-hash-edit-cli read large_test.rs > /dev/null" \
   "bun bun_hash.ts large_test.rs > /dev/null"
 
@@ -65,7 +65,7 @@ JSONEOF
 cp large_test.rs large_test.rs.bak
 
 echo "Running Hyperfine Apply Benchmark..."
-hyperfine --warmup 3 \
+~/.cargo/bin/hyperfine --warmup 3 \
   --prepare "cp large_test.rs.bak large_test.rs" \
   "cat edit.json | target/release/llm-hash-edit-cli apply large_test.rs > /dev/null"
 

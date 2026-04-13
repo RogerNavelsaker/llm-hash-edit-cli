@@ -1,0 +1,30 @@
+Building release binary...
+    Finished `release` profile [optimized] target(s) in 0.02s
+Generating large test file (20,000 lines)...
+Creating Bun hash reference script...
+Running Hyperfine Read Benchmark...
+Benchmark 1: target/release/llm-hash-edit-cli read large_test.rs > /dev/null
+  Time (mean ± σ):       4.9 ms ±   1.0 ms    [User: 3.0 ms, System: 1.8 ms]
+  Range (min … max):     3.2 ms …   9.1 ms    381 runs
+ 
+  Warning: Command took less than 5 ms to complete. Note that the results might be inaccurate because hyperfine can not calibrate the shell startup time much more precise than this limit. You can try to use the `-N`/`--shell=none` option to disable the shell completely.
+ 
+Benchmark 2: bun bun_hash.ts large_test.rs > /dev/null
+  Time (mean ± σ):      19.7 ms ±   1.6 ms    [User: 14.3 ms, System: 7.6 ms]
+  Range (min … max):    17.1 ms …  34.9 ms    153 runs
+ 
+  Warning: Statistical outliers were detected. Consider re-running this benchmark on a quiet system without any interferences from other programs. It might help to use the '--warmup' or '--prepare' options.
+ 
+Summary
+  target/release/llm-hash-edit-cli read large_test.rs > /dev/null ran
+    4.03 ± 0.92 times faster than bun bun_hash.ts large_test.rs > /dev/null
+Preparing Apply Benchmark payload...
+Running Hyperfine Apply Benchmark...
+Benchmark 1: cat edit.json | target/release/llm-hash-edit-cli apply large_test.rs > /dev/null
+  Time (mean ± σ):       4.2 ms ±   0.7 ms    [User: 1.7 ms, System: 2.1 ms]
+  Range (min … max):     2.8 ms …   7.1 ms    361 runs
+ 
+  Warning: Command took less than 5 ms to complete. Note that the results might be inaccurate because hyperfine can not calibrate the shell startup time much more precise than this limit. You can try to use the `-N`/`--shell=none` option to disable the shell completely.
+ 
+Cleaning up...
+Benchmarks complete.
