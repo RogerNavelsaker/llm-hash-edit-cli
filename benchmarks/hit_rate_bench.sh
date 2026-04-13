@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+if [ "$VERBOSE" = "1" ]; then set -x; fi
 AGENT="gemini --yolo"
 DATASET="./dataset"
 USE_SKILL=false

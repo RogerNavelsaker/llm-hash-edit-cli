@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+if [ "$VERBOSE" = "1" ]; then set -x; fi
 # Centralized Benchmark Suite Runner
 # Edit the variables below to change models or datasets globally
 
