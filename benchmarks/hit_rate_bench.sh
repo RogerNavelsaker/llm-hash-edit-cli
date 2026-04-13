@@ -6,6 +6,14 @@ AGENT="gemini --yolo -m gemini-3.1-flash-lite-preview -p"
 DATASET="./dataset"
 USE_SKILL=false
 
+# Local telemetry printer using standardized logging
+print_telemetry() {
+    local ms=$1; local tokens=$2; local turns=$3; local success=$4
+    local status="FAILED"
+    [[ "$success" == "1" ]] && status="SUCCESS"
+    info "  [TELEMETRY] Status: $status | Time: $((ms/1000))s | Tokens: $tokens | Turns: $turns"
+}
+
 main() {
     while [[ "$#" -gt 0 ]]; do
         case "$1" in
@@ -20,22 +28,26 @@ main() {
         [ -d "$test_dir" ] || continue
         test_name=$(basename "$test_dir")
         info "Running test: $test_name"
+        
         WORKSPACE="/tmp/llm_bench_workspace_$test_name"
         rm -rf "$WORKSPACE" && cp -r "$test_dir" "$WORKSPACE" && cd "$WORKSPACE"
         
         PROMPT=$(cat prompt.txt)
         [[ "$USE_SKILL" == "true" ]] && PROMPT="CRITICAL: Use llm-hash-edit CLI.\n$PROMPT"
         
-        $AGENT -p "$PROMPT" -o json > session.json 2>&1 || true
+        debug "Executing agent: $AGENT"
+        $AGENT -p "$PROMPT" -o json > session.json 2>&1 || warning "Agent returned non-zero"
         
         ms=0; tokens=0; turns=0; success=0
         if jq -e . session.json >/dev/null 2>&1; then
             ms=$(jq -r '.duration_ms // 0' session.json)
             tokens=$(jq -r '.usage.total_token_count // 0' session.json)
             turns=$(jq -r '.turns | length // 0' session.json)
+        else
+            warning "Invalid JSON output in session.json"
         fi
         
-        if cargo test --quiet > /dev/null 2>&1; then success=1; fi
+        if cargo test --quiet > /dev/null 2>&1; then success=1; info "Test $test_name: PASSED"; else warning "Test $test_name: FAILED"; fi
         print_telemetry "$ms" "$tokens" "$turns" "$success"
     done
 }
