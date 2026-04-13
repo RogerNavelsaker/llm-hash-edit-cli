@@ -1,18 +1,11 @@
 #!/usr/bin/env bash
-source "$(dirname "$0")/../../bash-boilerplate/core.sh"
-source "$(dirname "$0")/../../bash-boilerplate/lib/log.sh"
+source "$(dirname "$0")/common.sh"
 
 AGENT="gemini --yolo -m gemini-3.1-flash-lite-preview -p"
 DATASET="./dataset"
 USE_SKILL=false
 
 # Local telemetry printer using standardized logging
-print_telemetry() {
-    local ms=$1; local tokens=$2; local turns=$3; local success=$4
-    local status="FAILED"
-    [[ "$success" == "1" ]] && status="SUCCESS"
-    info "  [TELEMETRY] Status: $status | Time: $((ms/1000))s | Tokens: $tokens | Turns: $turns"
-}
 
 main() {
     while [[ "$#" -gt 0 ]]; do

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-source "$(dirname "$0")/../bash-boilerplate/core.sh"
-source "$(dirname "$0")/../bash-boilerplate/lib/log.sh"
+source "$(dirname "$0")/common.sh"
+source "$(dirname "$0")/common.sh"
 
 AGENT="gemini --yolo -m gemini-3.1-flash-lite-preview -p"
 DATASET="/home/rona/.gemini/tmp/fleet/dataset"
